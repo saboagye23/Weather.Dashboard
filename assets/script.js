@@ -1,26 +1,16 @@
-/** 
-`<div class="col-md-3">
-<div class="card">
-    <img src="..." class="card-img-top" alt="...">
-    <div class="card-body">
-      <h5 class="card-title">Card title</h5>
-      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-      <a href="#" class="btn btn-primary">Go somewhere</a>
-    </div>
-  </div>
-</div>`
-*/
 var weatherApiKey = 'ba0df728719b3147dce53ee182920426'
+
+
 var searchWeather = function(searchTerm){
-    $.getJSON( `https://api.openweathermap.org/data/2.5/weather?q=${searchTerm}&appid=${weatherApiKey}&units=imperial`, function( weather ) {
-        saveSearchTerm(weather.name);    
-        displayCurrentWeather(weather);
-    });     
-}
-var searchForecast = function(searchTerm){
-    $.getJSON(`https://api.openweathermap.org/data/2.5/forecast?q=${searchTerm}&appid=${weatherApiKey}&units=imperial`, function( data ) {
-        console.log("forecast", data)
-    });     
+    $.getJSON( `https://api.openweathermap.org/data/2.5/weather?q=${searchTerm}&units=imperial&appid=${weatherApiKey}`, function( weather ) {
+        saveSearchTerm(weather.name); 
+        displaySearchTerm();   
+        displayWeather(weather);
+    }); 
+    
+    $.getJSON(`https://api.openweathermap.org/data/2.5/forecast?q=${searchTerm}&units=imperial&appid=${weatherApiKey}`, function( forecast ) {
+        displayForecast(forecast);
+    });   
 }
 
 var addWeatherDetail = function(weather, uvIndex){
@@ -40,17 +30,39 @@ var addWeatherDetail = function(weather, uvIndex){
     return content;
 }
 
-var displayCurrentWeather = function(weather, uvIndex){
-    var dt = moment.unix(weather.dt).format('MM/DD/YYYY');
+var getWeatherIcon = function(weather){
     var iconImage = '';
     if(weather.weather){
         iconImage = `<img class='icon' src = 'http://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png'/>`
     }
-    
-    var content = `<div class='weather'><h2 class='city'>${weather.name} (${dt}) ${iconImage}</h2>`;
+    return iconImage;
+}
+
+var displayWeather = function(weather, uvIndex){
+    var dt = moment.unix(weather.dt).format('M/DD/YYYY');
+    var iconImage = getWeatherIcon(weather);  
+    var content = `<div class='weather card'><h2 class='city'>${weather.name} (${dt}) ${iconImage}</h2>`;
     content += addWeatherDetail(weather, uvIndex);
     content += '</div>';
     $('.current-weather').html(content);
+    console.log('weather', weather);
+}
+
+var displayForecast = function(forecast){
+    var content = '';
+    for(var i=0; i < forecast.list.length; i += 8){
+        var weather = forecast.list[i];
+        var dt = moment.unix(weather.dt).format('M/DD/YYYY');
+        var iconImage = getWeatherIcon(weather);  
+        content += 
+        `<div class="col-md-3"><div class="card">
+            <h3>${dt}</h3>
+            <div>${iconImage}</div>
+            ${addWeatherDetail(weather)}
+        </div></div>`;
+    } 
+
+    $('.future-forecast').html(content)
 }
 
 var saveSearchTerm = function(searchTerm){
@@ -62,10 +74,37 @@ var saveSearchTerm = function(searchTerm){
     window.localStorage.setItem("searchTerms", JSON.stringify(searchTerms));
 }
 
+var displaySearchTerm = function(){ 
+    var searchTerms =JSON.parse(window.localStorage.getItem("searchTerms"));
+    if(searchTerms){
+        var content = '<ul>';
+        for (const [term, value] of Object.entries(searchTerms)) {
+            content += `<li class='btn d-grid btn-secondary btn-city mb-1'>${term}</li>`
+        } 
+        content += '</ul>';
+        $('.search-cities').html(content);
+    }
+}
+
 $(document).ready(function(){
+    displaySearchTerm();
     $(document).on("click", '.btn.search', function(e){
         var searchTerm = $('#txt-search').val();
-        searchWeather(searchTerm);
+        searchWeather(searchTerm);  
+        
+    });
+
+    $(document).on("keypress", '#txt-search', function(e){ 
+        var keycode = (e.keyCode ? e.keyCode : e.which);
+        if(keycode == '13'){
+            var searchTerm = $('#txt-search').val();
+            searchWeather(searchTerm);  
+        } 
+    });
+
+    $(document).on("click", '.search-cities .btn-city', function(e){
+        var searchTerm = $(this).html();
+        searchWeather(searchTerm);  
     });
 
 })

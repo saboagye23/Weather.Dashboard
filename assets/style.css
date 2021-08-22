@@ -11,7 +11,7 @@ header h1{
 }
 
 @media (min-width: 768px){
-    .future-forcast .col-md-3{
+    .future-forecast .col-md-3{
         width: 20% !important;
     }
 }
