@@ -1,0 +1,17 @@
+header{
+    text-align: center;
+    background-image: linear-gradient(to right, blue, navy);
+    padding:10px;
+}
+
+header h1{
+    color: #fff;
+    font-size: 36px;
+    font-weight: 600;
+}
+
+@media (min-width: 768px){
+    .future-forcast .col-md-3{
+        width: 20% !important;
+    }
+}
