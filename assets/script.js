@@ -6,11 +6,22 @@ var searchWeather = function(searchTerm){
         saveSearchTerm(weather.name); 
         displaySearchTerm();   
         displayWeather(weather);
+        addUVIndex(weather);
     }); 
     
     $.getJSON(`https://api.openweathermap.org/data/2.5/forecast?q=${searchTerm}&units=imperial&appid=${weatherApiKey}`, function( forecast ) {
         displayForecast(forecast);
     });   
+}
+
+var addUVIndex = function(weather){
+    if(weather.coord){
+        let UVQueryURL = "https://api.openweathermap.org/data/2.5/uvi/forecast?lat=" + weather.coord.lat + "&lon=" + weather.coord.lon + "&appid=" + weatherApiKey + "&cnt=1"
+        $.getJSON(UVQueryURL, function( uvIndex ) {
+            console.log('uvIndex', uvIndex);  
+            displayWeather(weather, uvIndex[0].value)  
+        }); 
+    }
 }
 
 var addWeatherDetail = function(weather, uvIndex){
@@ -22,13 +33,27 @@ var addWeatherDetail = function(weather, uvIndex){
     `;
 
     if(uvIndex){
-        content += `<li><span>UV Index:</span> <span class='uv-index'>${uvIndex}</span></li>`;
+        content += `<li><span>UV Index:</span> <span class='uv-index ${getUVIndexColor(uvIndex)}'>${uvIndex}</span></li>`;
     }
 
     content += '</ul>';
 
     return content;
 }
+
+var getUVIndexColor = function (uvIndex) {
+    if(uvIndex <=2){
+        return 'low'
+    }else if(uvIndex <= 5){
+        return 'moderate';
+    }else if(uvIndex <= 7){
+        return 'high';
+    }else if(uvIndex <= 10){
+        return 'very-high';
+    }else{
+        return 'extreme';
+    }
+} 
 
 var getWeatherIcon = function(weather){
     var iconImage = '';
@@ -49,20 +74,22 @@ var displayWeather = function(weather, uvIndex){
 }
 
 var displayForecast = function(forecast){
-    var content = '';
+    var content = '<h3>5-Day Forecast:</h3><div class=" row">';
     for(var i=0; i < forecast.list.length; i += 8){
         var weather = forecast.list[i];
         var dt = moment.unix(weather.dt).format('M/DD/YYYY');
         var iconImage = getWeatherIcon(weather);  
         content += 
-        `<div class="col-md-3"><div class="card">
+        `<div class="col-md-3"><div class="forecast card">
             <h3>${dt}</h3>
             <div>${iconImage}</div>
             ${addWeatherDetail(weather)}
         </div></div>`;
     } 
 
-    $('.future-forecast').html(content)
+    content += '</div>'
+
+    $('.future-forecast').html(content);
 }
 
 var saveSearchTerm = function(searchTerm){
