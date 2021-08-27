@@ -22,7 +22,7 @@ Font Awesome
 https://saboagye23.github.io/Weather.Dashboard/
 
 ## Screenshots
-![screenshot] (./assets/img/screenshot.png)
+![Screenshot](./assets/img/screenshot.png)
 
 ## Contribution
 Made with ❤ by Sherol A
